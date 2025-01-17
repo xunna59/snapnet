@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Notifications\NewProject;
 
 class ProjectController extends Controller
 {
@@ -14,6 +15,38 @@ class ProjectController extends Controller
     public function index()
     {
         return Project::with('employees')->get();
+    }
+
+    public function addEmployeeToProject(Request $request, $projectId)
+    {
+
+        $request->validate([
+            'employee_id' => 'required|exists:users,id',
+        ]);
+
+
+        $project = Project::findOrFail($projectId);
+
+
+        $employee = Employee::findOrFail($request->id);
+
+
+        if (!$project->employees()->where('employee_id', $employee->id)->exists()) {
+            $project->employees()->attach($employee);
+
+
+            $employee->notify(new NewProject($project->name));
+        } else {
+            return response()->json([
+                'message' => 'User is already assigned to this project.',
+            ], 400);
+        }
+
+        return response()->json([
+            'message' => 'Employee added to project and email sent.',
+            'project' => $project->name,
+            'user' => $employee->name,
+        ]);
     }
 
     /**
