@@ -13,6 +13,8 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+
+
     // Employee Routes
     Route::get('/employees', [EmployeeController::class, 'index']);
     Route::get('/employees/{employee}', [EmployeeController::class, 'show']);
@@ -26,6 +28,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/projects', [ProjectController::class, 'store']);
     Route::put('/projects/{project}', [ProjectController::class, 'update']);
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy']);
+
+    Route::get('/projects/summary', [ProjectController::class, 'getSummary']);
 });
 
 Route::post('/register', [RegisteredUserController::class, 'store']);

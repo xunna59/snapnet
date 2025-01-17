@@ -12,9 +12,24 @@ class ProjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Project::with('employees')->get();
+        $query = Project::query();
+
+
+        if ($request->has('name')) {
+            $query->where('name', 'like', '%' . $request->name . '%');
+        }
+
+
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+
+
+        $projects = $query->paginate(10);
+
+        return response()->json($projects);
     }
 
     public function addEmployeeToProject(Request $request, $projectId)
@@ -103,5 +118,26 @@ class ProjectController extends Controller
     {
         $project->delete();
         return response()->json(['message' => 'Project deleted successfully.']);
+    }
+
+    public function getSummary()
+    {
+
+        $totalProjects = Project::count();
+
+
+        $totalEmployees = Employee::count();
+
+
+        $projectsByStatus = Project::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->get();
+
+
+        return response()->json([
+            'total_projects' => $totalProjects,
+            'total_employees' => $totalEmployees,
+            'projects_by_status' => $projectsByStatus
+        ]);
     }
 }
